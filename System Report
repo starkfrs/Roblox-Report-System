@@ -1,0 +1,53 @@
+local players = {}
+
+local ws = require(script.WebhookService)
+local http = game:GetService("HttpService")
+local url = "https://hooks.hyra.io/" (Create a webhook via Discord, and copying the Webhook ID. Afterwards, copy and paste the delete https://discord.com/)
+
+game.Players.PlayerAdded:Connect(function(p)
+	table.insert(players, p.Name)
+end)
+
+game.Players.PlayerRemoving:Connect(function(p)
+	table.clear(players)
+	for i,v in pairs(game.Players:GetPlayers()) do
+		table.insert(v.Name)
+	end
+end)
+
+game.ReplicatedStorage.Report.OnServerEvent:Connect(function(player, target, reason)
+	if not players[player.Name] == true then
+		players[player.Name] = true
+		local data = {
+			['embeds'] = {{
+				['title'] = "**New Report**",
+				['description'] = "**"..player.Name.."**" .. " has reported another user: " .. "**"..target.."**" .. " For the reason of: " .. "**"..reason.."**",
+				['color'] = 16771928,
+				['url'] = "https://www.roblox.com/users/".. player.UserId .. "/profile",
+
+				['fields'] = {
+					{
+						['name'] = "Account age: ",
+						['value'] = player.AccountAge .. " Days old",
+						['inline'] = true,
+					},
+					{
+						['name'] = "User ID: ",
+						['value'] = player.UserId,
+						['inline'] = true
+					}
+
+
+
+				}}
+			}
+
+		}
+
+		local finaldata = http:JSONEncode(data)
+		http:PostAsync(url, finaldata)
+		
+		wait(10)
+		players[player.Name] = false
+	end
+end)
